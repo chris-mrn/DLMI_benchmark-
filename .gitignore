@@ -1,3 +1,5 @@
+dataset/
+
 # Cache directories
 .pytest_cache
 __pycache__
