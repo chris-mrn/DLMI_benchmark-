@@ -32,7 +32,7 @@ class Solver(BaseSolver):
         # It is customizable for each benchmark.
         X_tensor = torch.tensor(X)
         self.X, self.y = X_tensor, y
-        self.clf = resnet50(weights='imagenet')
+        self.clf = resnet50()
 
     def run(self, n_iter):
         # This is the function that is called to evaluate the solver.
@@ -47,4 +47,4 @@ class Solver(BaseSolver):
         # The outputs of this function are the arguments of `Objective.compute`
         # This defines the benchmark's API for solvers' results.
         # it is customizable for each benchmark.
-        return self.clf
+        return dict(model=self.clf)
