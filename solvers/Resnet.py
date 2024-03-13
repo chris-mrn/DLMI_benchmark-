@@ -4,9 +4,8 @@ from benchopt import BaseSolver, safe_import_context
 # - skipping import to speed up autocompletion in CLI.
 # - getting requirements info when all dependencies are not installed.
 with safe_import_context() as import_ctx:
-    from sklearn.pipeline import make_pipeline
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.svm import SVC
+    from torchvision.models import resnet50
+    import torch
 
 
 # The benchmark solvers must be named `Solver` and
@@ -14,7 +13,7 @@ with safe_import_context() as import_ctx:
 class Solver(BaseSolver):
 
     # Name to select the solver in the CLI and to display the results.
-    name = 'SVM'
+    name = 'Resnet'
 
     # List of parameters for the solver. The benchmark will consider
     # the cross product for each key in the dictionary.
@@ -27,13 +26,13 @@ class Solver(BaseSolver):
 
     def set_objective(self, X, y):
         # Define the information received by each solver from the objective.
-        # The arguments of this function are the results of the
+        # The arguments of this function are the results of
         # `Objective.get_objective`. This defines the benchmark's API for
         # passing the objective to the solver.
         # It is customizable for each benchmark.
-
-        self.X, self.y = X.reshape(X.shape[0], -1), y
-        self.clf = make_pipeline(StandardScaler(), SVC(gamma='auto'))
+        X_tensor = torch.tensor(X)
+        self.X, self.y = X_tensor, y
+        self.clf = resnet50()
 
     def run(self, n_iter):
         # This is the function that is called to evaluate the solver.
