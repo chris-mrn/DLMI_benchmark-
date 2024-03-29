@@ -6,9 +6,10 @@ from benchopt import BaseSolver, safe_import_context
 with safe_import_context() as import_ctx:
     from sklearn.dummy import DummyClassifier
 
-
 # The benchmark solvers must be named `Solver` and
 # inherit from `BaseSolver` for `benchopt` to work properly.
+
+
 class Solver(BaseSolver):
 
     # Name to select the solver in the CLI and to display the results.
@@ -23,14 +24,14 @@ class Solver(BaseSolver):
     # section in objective.py
     requirements = []
 
-    def set_objective(self, X, y):
+    def set_objective(self, X_img, X_bio, y):
         # Define the information received by each solver from the objective.
         # The arguments of this function are the results of the
         # `Objective.get_objective`. This defines the benchmark's API for
         # passing the objective to the solver.
         # It is customizable for each benchmark.
 
-        self.X, self.y = X.reshape(X.shape[0], -1), y
+        self.X, self.y = X_bio, y
         self.clf = DummyClassifier(strategy="most_frequent")
 
     def run(self, n_iter):
@@ -46,4 +47,4 @@ class Solver(BaseSolver):
         # The outputs of this function are the arguments of `Objective.compute`
         # This defines the benchmark's API for solvers' results.
         # it is customizable for each benchmark.
-        return dict(model=self.clf)
+        return dict(model=self.clf, data='bio')

@@ -5,6 +5,7 @@ from benchopt import BaseSolver, safe_import_context
 # - getting requirements info when all dependencies are not installed.
 with safe_import_context() as import_ctx:
     from sklearn.neural_network import MLPClassifier
+    from benchmark_utils.processing import flat_set_for_deep
 
 
 # The benchmark solvers must be named `Solver` and
@@ -23,20 +24,29 @@ class Solver(BaseSolver):
     # section in objective.py
     requirements = []
 
-    def set_objective(self, X, y):
+    def set_objective(self, X_img, X_bio, y):
         # Define the information received by each solver from the objective.
         # The arguments of this function are the results of the
         # `Objective.get_objective`. This defines the benchmark's API for
         # passing the objective to the solver.
         # It is customizable for each benchmark.
 
-        self.X, self.y = X, y
-        self.clf = MLPClassifier(random_state=1, max_iter=300)
+        X_img, y = flat_set_for_deep(X_img, y)
+
+        self.X_img = X_img
+        self.X_bio = X_bio
+        self.y = y
+        self.clf = MLPClassifier(hidden_layer_sizes=(15, 15),
+                                 random_state=1,
+                                 max_iter=10)
 
     def run(self, n_iter):
         # This is the function that is called to evaluate the solver.
         # It runs the algorithm for a given a number of iterations `n_iter`.
-        self.clf.fit(self.X, self.y)
+
+        self.clf.fit(self.X_img, self.y)
+        self.clf.predict(self.X_img)
+        print("allez")
 
     def get_next(self, n_iter):
         return n_iter + 1
@@ -46,4 +56,4 @@ class Solver(BaseSolver):
         # The outputs of this function are the arguments of `Objective.compute`
         # This defines the benchmark's API for solvers' results.
         # it is customizable for each benchmark.
-        return dict(model=self.clf)
+        return dict(model=self.clf, data='img')

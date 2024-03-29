@@ -52,27 +52,28 @@ def load_data(csv_path, images_path):
     return data_dict
 
 
-def rgb_to_grayscale(rgb_image):
-    # Convert RGB to grayscale using the luminosity method
-    grayscale_image = np.dot(rgb_image[..., :3], [0.299, 0.587, 0.114])
-
-    # Convert to uint8 data type (required for Pillow)
-    grayscale_image = grayscale_image.astype(np.uint8)
-
-    return grayscale_image
-
-
 def load_X_y(data):
     X = []
     y = []
-    for j in range(len(data)):
-        images_subject_j = data[j]['images']
-        for i in range(len(images_subject_j)):
-            X.append(rgb_to_grayscale(data[j]['images'][i]))
-            y.append(data[j]['label'])
-        print("loading of image:", j)
-
-    X = np.array(X)
-    y = np.array(y)
-
+    for i in range(len(data)):
+        X.append(data[i]['images'])
+        y.append([data[i]['label']])
+        print("loading images from patient:", i)
     return X, y
+
+
+def load_data_bio(data):
+    X = []
+    y = []
+    for i in range(len(data)):
+        dob = data[i]['dob']
+        age = float(dob.split('/')[2] if '/' in dob else dob.split('-')[2])
+        sex = data[i]['gender']
+        if sex == 'M':
+            sex = 1
+        else:
+            sex = -1
+
+        X.append([data[i]['lymph_count'], age, sex])
+        y.append(data[i]['label'])
+    return np.array(X), np.array(y)
