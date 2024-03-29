@@ -1,10 +1,11 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import os
 import numpy as np
+from PIL import Image
 
 
 def load_images_from_folder(folder_path):
+
     images = []
 
     for file_name in os.listdir(folder_path):
@@ -12,9 +13,18 @@ def load_images_from_folder(folder_path):
 
         # Check if the file is a regular file and has a JPEG extension
         if os.path.isfile(file_path) and file_path.lower().endswith('.jpg'):
-            # Load the image using Pillow
-            image = plt.imread(file_path)
-            images.append(image)
+            # Open the image using PIL's Image.open
+            with Image.open(file_path) as image:
+                # Convert the image to numpy array and append to the list
+                width, height = image.size
+                left = width/4
+                top = height/4
+                right = 3*width/4
+                bottom = 3*height/4
+                # Crop the center of the image
+                img_crop = image.crop((left, top, right, bottom))
+                img = np.array(img_crop)
+                images.append(img)
 
     return images
 

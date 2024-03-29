@@ -70,24 +70,26 @@ class Objective(BaseObjective):
         # dictionary returned by `Solver.get_result`. This defines the
         # benchmark's API to pass solvers' result. This is customizable for
         # each benchmark.
-        y_train = self.y_train
-        y_test = self.y_test
 
         if data == 'bio':
             X_train = self.X_bio_train
             X_test = self.X_bio_test
+            y_train = self.y_train
+            y_test = self.y_test
 
         if data == 'img':
-            X_train, y_train = flat_set_for_deep(self.X_img_train, y_train)
-            X_test, y_test = flat_set_for_deep(self.X_img_test, y_test)
+            X_train, y_train = flat_set_for_deep(self.X_img_train,
+                                                 self.y_train)
+            X_test, y_test = flat_set_for_deep(self.X_img_test,
+                                               self.y_test)
 
         if data == 'img+bio':
             X_train, y_train = flat_set_img_bio(self.X_img_train,
                                                 self.X_bio_train,
-                                                y_train)
+                                                self.y_train)
             X_test, y_test = flat_set_img_bio(self.X_img_test,
                                               self.X_bio_test,
-                                              y_test)
+                                              self.y_test)
 
         y_pred_train = model.predict(X_train)
         y_pred_test = model.predict(X_test)
@@ -98,8 +100,8 @@ class Objective(BaseObjective):
         # This method can return many metrics in a dictionary. One of these
         # metrics needs to be `value` for convergence detection purposes.
         return dict(
-            score_test=score_test,
-            score_train=score_train,
+            balanced_accuracy_test=score_test,
+            balanced_accuracy_train=score_train,
             value=1-score_test
         )
 

@@ -38,7 +38,7 @@ class Solver(BaseSolver):
         self.y = y
         self.clf = MLPClassifier(hidden_layer_sizes=(15, 15),
                                  random_state=1,
-                                 max_iter=10)
+                                 max_iter=100)
 
     def run(self, n_iter):
         # This is the function that is called to evaluate the solver.
@@ -46,7 +46,6 @@ class Solver(BaseSolver):
 
         self.clf.fit(self.X_img, self.y)
         self.clf.predict(self.X_img)
-        print("allez")
 
     def get_next(self, n_iter):
         return n_iter + 1
