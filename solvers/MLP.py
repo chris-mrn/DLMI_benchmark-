@@ -4,16 +4,16 @@ from benchopt import BaseSolver, safe_import_context
 # - skipping import to speed up autocompletion in CLI.
 # - getting requirements info when all dependencies are not installed.
 with safe_import_context() as import_ctx:
-    from sklearn.dummy import DummyClassifier
+    from sklearn.neural_network import MLPClassifier
+    from benchmark_utils.processing import flat_set_for_deep
+
 
 # The benchmark solvers must be named `Solver` and
 # inherit from `BaseSolver` for `benchopt` to work properly.
-
-
 class Solver(BaseSolver):
 
     # Name to select the solver in the CLI and to display the results.
-    name = 'Dummy'
+    name = 'MLP'
 
     # List of parameters for the solver. The benchmark will consider
     # the cross product for each key in the dictionary.
@@ -31,13 +31,21 @@ class Solver(BaseSolver):
         # passing the objective to the solver.
         # It is customizable for each benchmark.
 
-        self.X, self.y = X_bio, y
-        self.clf = DummyClassifier(strategy="most_frequent")
+        X_img, y = flat_set_for_deep(X_img, y)
+
+        self.X_img = X_img
+        self.X_bio = X_bio
+        self.y = y
+        self.clf = MLPClassifier(hidden_layer_sizes=(15, 15),
+                                 random_state=1,
+                                 max_iter=100)
 
     def run(self, n_iter):
         # This is the function that is called to evaluate the solver.
         # It runs the algorithm for a given a number of iterations `n_iter`.
-        self.clf.fit(self.X, self.y)
+
+        self.clf.fit(self.X_img, self.y)
+        self.clf.predict(self.X_img)
 
     def get_next(self, n_iter):
         return n_iter + 1
@@ -47,4 +55,4 @@ class Solver(BaseSolver):
         # The outputs of this function are the arguments of `Objective.compute`
         # This defines the benchmark's API for solvers' results.
         # it is customizable for each benchmark.
-        return dict(model=self.clf, data='bio')
+        return dict(model=self.clf, data='img')

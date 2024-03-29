@@ -6,6 +6,9 @@ from sklearn.metrics import balanced_accuracy_score
 # - getting requirements info when all dependencies are not installed.
 with safe_import_context() as import_ctx:
     import numpy as np
+    from sklearn.model_selection import train_test_split
+    from benchmark_utils.processing import flat_set_for_deep
+    from benchmark_utils.processing import flat_set_img_bio
 
 
 # The benchmark objective must be named `Objective` and
@@ -37,34 +40,68 @@ class Objective(BaseObjective):
     # Bump it up if the benchmark depends on a new feature of benchopt.
     min_benchopt_version = "1.5"
 
-    def set_data(self, X_train, X_test, y_train, y_test):
+    def set_data(self, X_img, X_bio, y):
         # The keyword arguments of this function are the keys of the dictionary
         # returned by `Dataset.get_data`. This defines the benchmark's
         # API to pass data. This is customizable for each benchmark.
-        self.X_train, self.y_train = X_train, y_train
-        self.X_test, self.y_test = X_test, y_test
 
-        return dict(
-            X_train=self.X_train, y_train=self.y_train,
-            X_test=self.X_test, y_test=self.y_test)
+        # Split the data into training and testing sets
+        X_img_train, X_img_test, y_train, y_test = train_test_split(
+                                                    X_img,
+                                                    y,
+                                                    random_state=42)
 
-    def evaluate_result(self, model):
+        X_bio_train, X_bio_test, _, _ = train_test_split(
+                                                    X_bio,
+                                                    y,
+                                                    random_state=42)
+
+        self.X_img_train = X_img_train
+        self.X_img_test = X_img_test
+
+        self.X_bio_train = X_bio_train
+        self.X_bio_test = X_bio_test
+
+        self.y_train = y_train
+        self.y_test = y_test
+
+    def evaluate_result(self, model, data):
         # The keyword arguments of this function are the keys of the
         # dictionary returned by `Solver.get_result`. This defines the
         # benchmark's API to pass solvers' result. This is customizable for
         # each benchmark.
 
-        y_pred_train = model.predict(self.X_train)
-        y_pred_test = model.predict(self.X_test)
+        if data == 'bio':
+            X_train = self.X_bio_train
+            X_test = self.X_bio_test
+            y_train = self.y_train
+            y_test = self.y_test
 
-        score_test = balanced_accuracy_score(self.y_test, y_pred_test)
-        score_train = balanced_accuracy_score(self.y_train, y_pred_train)
+        if data == 'img':
+            X_train, y_train = flat_set_for_deep(self.X_img_train,
+                                                 self.y_train)
+            X_test, y_test = flat_set_for_deep(self.X_img_test,
+                                               self.y_test)
+
+        if data == 'img+bio':
+            X_train, y_train = flat_set_img_bio(self.X_img_train,
+                                                self.X_bio_train,
+                                                self.y_train)
+            X_test, y_test = flat_set_img_bio(self.X_img_test,
+                                              self.X_bio_test,
+                                              self.y_test)
+
+        y_pred_train = model.predict(X_train)
+        y_pred_test = model.predict(X_test)
+
+        score_test = balanced_accuracy_score(y_test, y_pred_test)
+        score_train = balanced_accuracy_score(y_train, y_pred_train)
 
         # This method can return many metrics in a dictionary. One of these
         # metrics needs to be `value` for convergence detection purposes.
         return dict(
-            score_test=score_test,
-            score_train=score_train,
+            balanced_accuracy_test=score_test,
+            balanced_accuracy_train=score_train,
             value=1-score_test
         )
 
@@ -81,6 +118,7 @@ class Objective(BaseObjective):
         # It is customizable for each benchmark.
 
         return dict(
-            X=self.X_train,
+            X_img=self.X_img_train,
+            X_bio=self.X_bio_train,
             y=self.y_train,
         )

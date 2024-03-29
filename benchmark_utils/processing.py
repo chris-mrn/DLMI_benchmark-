@@ -1,13 +1,22 @@
 import numpy as np
 
 
-def grey_image(colored_img):
-    n, m, _ = np.shape(colored_img)
-    new_img = np.zeros((n, m))
-    for i in range(n):
-        for j in range(m):
-            new_img[i][j] = 1/3 * (colored_img[0] +
-                                   colored_img[1] +
-                                   colored_img[2])
+def flat_set_for_deep(X_img, y):
+    X_img_flat = []
+    y_flat = []
+    for i in range(len(X_img)):
+        for j in range(len(X_img[i])):
+            X_img_flat.append(X_img[i][j].flatten())
+            y_flat.append(y[i])
+    return X_img_flat, y_flat
 
-    return new_img
+
+def flat_set_img_bio(X_img, X_bio, y):
+    X_flat = []
+    y_flat = []
+    for i in range(len(X_img)):
+        for j in range(len(X_img[i])):
+            image_bio = np.concatenate((X_img[i][j].flatten(), X_bio[i]))
+            X_flat.append(image_bio)
+            y_flat.append(y[i])
+    return X_flat, y_flat
